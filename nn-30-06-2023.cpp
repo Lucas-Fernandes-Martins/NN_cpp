@@ -2,7 +2,6 @@
 #include<vector>
 #include<memory>
 #include<cmath>
-#include <random>
 
 using std::cin;
 using std::cout;
@@ -23,13 +22,7 @@ class Matrix{
 		this->rows = rows;
 		this->colms = colms;
 		this->data = new vector<float>(rows*colms);
-		
-		std::default_random_engine generator;
-		std::uniform_real_distribution<float> dist(0.0, 1.0);
-
-		for(vector<float>::iterator it = this->data->begin(); it != this->data->end(); it++){
-			*it = dist(generator);
-		}
+	
 	}
 
 	Matrix(int rows, int colms, float values[], int n){
@@ -104,10 +97,7 @@ class Matrix{
 
 		return res;
 
-}
-
-	
-
+	}
 
 	Matrix* mul(Matrix *m){
 		Matrix *res = new Matrix(this->rows, m->colms); 
@@ -143,11 +133,7 @@ class Matrix{
 		cout << "M = " << endl;	
 		for(int i = 0; i < this->rows; i++){
 			
-
 			for(int j = 0; j < this->colms; j++){
-				
-				if(j == 0) cout << " ";
-
 				cout << this->at(i, j) << " ";
 			}
 			cout << "\n";
@@ -161,26 +147,6 @@ class Matrix{
 		}
 		cout << endl;
 	}
-
-};
-
-
-class Layer: public Matrix{
-
-
-	private:
-
-	Matrix* (*activation)(Matrix*);
-
-	public:
-
-
-	Layer(int n_neurons, int previous_layer, Matrix* (*activation)(Matrix*)) : Matrix(n_neurons, previous_layer){
-		this->activation = activation;
-
-	}
-
-
 
 };
 
@@ -210,7 +176,6 @@ class NN{
 		this->n_layers = n_layers;
 		this->act_function = act_function;
 	}
-
 
 };
 
@@ -252,7 +217,6 @@ int main(){
 	
 	*/
 	
-	/*
 	float a1_array[] = {1.0,2.0, 3.0, 4.0};
 	float a2_array[] = {5.0,6.0};
 	
@@ -275,18 +239,7 @@ int main(){
 	a3->print();
 	a4->print();
 	a3->append(a4);
-
-	*/
 	
-	Matrix *a = new Matrix(2, 2);
-	a->print();
-	
-	cout << "--------------" << endl;
-	
-	Layer *l = new Layer(10, 10, &sigmoid);
-
-	l->print();
-
 	return 0;
 }
 

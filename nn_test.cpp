@@ -166,21 +166,12 @@ class Matrix{
 
 
 class Layer: public Matrix{
-
-
-	private:
-
-	Matrix* (*activation)(Matrix*);
-
+	
 	public:
 
-
-	Layer(int n_neurons, int previous_layer, Matrix* (*activation)(Matrix*)) : Matrix(n_neurons, previous_layer){
-		this->activation = activation;
+	Layer(int n_neurons) : Matrix(n_neurons, 1){
 
 	}
-
-
 
 };
 
@@ -210,7 +201,6 @@ class NN{
 		this->n_layers = n_layers;
 		this->act_function = act_function;
 	}
-
 
 };
 
@@ -283,7 +273,7 @@ int main(){
 	
 	cout << "--------------" << endl;
 	
-	Layer *l = new Layer(10, 10, &sigmoid);
+	Layer *l = new Layer(10);
 
 	l->print();
 
