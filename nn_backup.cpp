@@ -2,7 +2,7 @@
 #include<vector>
 #include<memory>
 #include<cmath>
-#include<random>
+#include <random>
 
 using std::cin;
 using std::cout;
@@ -19,15 +19,13 @@ class Matrix{
 	
 	public:
 
-	Matrix(int rows, int colms, int random_state=clock()){
+	Matrix(int rows, int colms){
 		this->rows = rows;
 		this->colms = colms;
 		this->data = new vector<float>(rows*colms);
-				
+		
 		std::default_random_engine generator;
 		std::uniform_real_distribution<float> dist(0.0, 1.0);
-
-		generator.seed(random_state);
 
 		for(vector<float>::iterator it = this->data->begin(); it != this->data->end(); it++){
 			*it = dist(generator);
@@ -114,8 +112,8 @@ class Matrix{
 	Matrix* mul(Matrix *m){
 		Matrix *res = new Matrix(this->rows, m->colms); 
 		
-		if(m->rows != this->colms){
-			cout << "INVALID OPERATION ! WRONG MATRIX DIMENSIONS\n";
+		if(m->colms != this->rows || m->rows != this->colms){
+			cout << "INVALID OPERATION ! WRONG MATRIX DIMENSIONS";
 			return NULL;
 		}
 
@@ -175,24 +173,14 @@ class Layer: public Matrix{
 	Matrix* (*activation)(Matrix*);
 
 	public:
-	
-	Layer(int n_rows, int n_colms) : Matrix(n_rows, n_colms){
-	
-	}
+
 
 	Layer(int n_neurons, int previous_layer, Matrix* (*activation)(Matrix*)) : Matrix(n_neurons, previous_layer){
 		this->activation = activation;
 		
 	}
 
-	
-	Layer(int rows, int colms, float values[], int n) : Matrix(rows, colms, values, n){
-	
-	}
 
-	Matrix* (*get_activation())(Matrix*){
-		return this->activation;
-	}
 
 };
 
@@ -215,12 +203,12 @@ class NN{
 
 	public:
 
-	NN(int size_input, float inputs[]){
+	NN(int size_input, float input[]){
 		this->layers = new vector<Layer*>();
 
 		//Create initial layer - inputs
-		
-		Layer *input = new Layer(size_input, 1, inputs, size_input);
+
+		Layer *input = new Layer(size_input, 1, input);
 
 		this->add_layer(input);
 		
@@ -232,66 +220,24 @@ class NN{
 
 	void add_layer(int n_neurons, Matrix* (*activation)(Matrix*)){
 		
-		int n_colms = this->layers->back()->get_rows();
-			
-		Layer *new_layer = new Layer(n_neurons, n_colms);
-
-		this->layers->push_back(new_layer);
 		
+
 	}
 
 
 	void forward_prop(){
 
-		Matrix *result;
+		Layer *result = new Layer();
+
+		result = layer->at(0);
 		
-		Matrix *ant;
-
-		ant = this->layers->at(0);
-		
-
-		for(int i = 1; i < this->layers->size(); i++){
+		for(int i = 1; i < layers->size(); i++){
 			
-			//*result = (Layer) *(*(this->layers->at(i)->get_activation()))(this->layers->at(i)->mul(result));
-			
-			ant->print();
-			this->layers->at(i)->print();
-
-			cout<<"\n=============\n";
-
-			result =  this->layers->at(i)->mul(ant);
-
-			ant = result;
-
+			result = this->activation(layers->at(i)->mul(result));
+				
 		}
-
-		result->print();
 		
 	}
-
-
-	void print(){
-		
-		cout << "\n================= LAYERS ===================\n";
-		
-		int i = 1;
-		
-
-		for(vector<Layer*>::iterator itr = this->layers->begin(); itr != this->layers->end(); itr++){
-			
-			cout << "-----------layer : " << std::to_string(i) << " -----------\n";
-			(*itr)->print();
-		}
-	}
-
-	
-	
-	/*
-	for(auto itr: this->layers){
-		
-	}
-	*/
-
 
 
 };
@@ -375,14 +321,8 @@ int main(){
 
 	NN *neural_net = new NN(2, inputs); 
 	
-	neural_net->add_layer(2, &sigmoid);
-	
-	neural_net->add_layer(2, &sigmoid);
+	Layer *l = new Layer(5);
 
-	neural_net->forward_prop();
-
-
-		
 	return 0;
 }
 	

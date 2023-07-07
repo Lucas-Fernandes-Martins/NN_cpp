@@ -19,15 +19,13 @@ class Matrix{
 	
 	public:
 
-	Matrix(int rows, int colms, int random_state=clock()){
+	Matrix(int rows, int colms){
 		this->rows = rows;
 		this->colms = colms;
 		this->data = new vector<float>(rows*colms);
-				
+		
 		std::default_random_engine generator;
 		std::uniform_real_distribution<float> dist(0.0, 1.0);
-
-		generator.seed(random_state);
 
 		for(vector<float>::iterator it = this->data->begin(); it != this->data->end(); it++){
 			*it = dist(generator);
@@ -114,8 +112,8 @@ class Matrix{
 	Matrix* mul(Matrix *m){
 		Matrix *res = new Matrix(this->rows, m->colms); 
 		
-		if(m->rows != this->colms){
-			cout << "INVALID OPERATION ! WRONG MATRIX DIMENSIONS\n";
+		if(m->colms != this->rows || m->rows != this->colms){
+			cout << "INVALID OPERATION ! WRONG MATRIX DIMENSIONS";
 			return NULL;
 		}
 
@@ -248,24 +246,16 @@ class NN{
 		Matrix *ant;
 
 		ant = this->layers->at(0);
-		
 
 		for(int i = 1; i < this->layers->size(); i++){
 			
 			//*result = (Layer) *(*(this->layers->at(i)->get_activation()))(this->layers->at(i)->mul(result));
 			
-			ant->print();
-			this->layers->at(i)->print();
-
-			cout<<"\n=============\n";
-
 			result =  this->layers->at(i)->mul(ant);
 
 			ant = result;
 
 		}
-
-		result->print();
 		
 	}
 
@@ -374,8 +364,6 @@ int main(){
 	float inputs[] = {1.0, 2.0};
 
 	NN *neural_net = new NN(2, inputs); 
-	
-	neural_net->add_layer(2, &sigmoid);
 	
 	neural_net->add_layer(2, &sigmoid);
 
