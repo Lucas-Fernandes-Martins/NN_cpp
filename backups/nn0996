@@ -164,25 +164,6 @@ class Matrix{
 		cout << endl;
 	}
 
-
-	Matrix& operator+(Matrix& m){
-		
-		if(this->colms != m.colms || this->rows != m.rows){
-			cout << "WRONG DIMENSIONS FOR ADITTION!";
-			exit(1);
-		}
-
-		Matrix *res = new Matrix(this->rows, this->colms);
-		
-		for(int i = 0; i < this->data->size(); i++){
-			res->data->at(i) = this->data->at(i) + m.data->at(i);
-		}
-
-	
-		return *res;
-
-	}
-
 };
 
 
@@ -198,13 +179,12 @@ class Layer: public Matrix{
 	public:
 	
 	Layer(int n_rows, int n_colms) : Matrix(n_rows, n_colms){
-
+	
 	}
 
 	Layer(int n_neurons, int previous_layer, Matrix* (*activation)(Matrix*)) : Matrix(n_neurons, previous_layer){
 		this->activation = activation;
 		
-		bias = new Matrix(n_neurons, 1);	
 	}
 
 	
@@ -214,10 +194,6 @@ class Layer: public Matrix{
 
 	Matrix* (*get_activation())(Matrix*){
 		return this->activation;
-	}
-
-	Matrix* get_bias(){
-		return this->bias;
 	}
 
 };
@@ -266,7 +242,7 @@ class NN{
 		
 		int n_colms = this->layers->back()->get_rows();
 			
-		Layer *new_layer = new Layer(n_neurons, n_colms, activation);
+		Layer *new_layer = new Layer(n_neurons, n_colms);
 
 		this->layers->push_back(new_layer);
 		
@@ -287,16 +263,13 @@ class NN{
 			//*result = (Layer) *(*(this->layers->at(i)->get_activation()))(this->layers->at(i)->mul(result));
 			
 			ant->print();
-			this->layers->at(i)->get_bias()->print();
 			this->layers->at(i)->print();
 
 			cout<<"\n=============\n";
 			
 			Matrix* (*activation)(Matrix*) = this->layers->at(i)->get_activation();
-			Matrix m = *(this->layers->at(i)->mul(ant)) + *(this->layers->at(i)->get_bias());
-			
-			cout << "\n----------res:\n";
-			result =  (*activation)(&m);
+
+			//result =  activation(this->layers->at(i)->mul(ant));
 
 			ant = result;
 
@@ -419,7 +392,12 @@ int main(){
 	neural_net->add_layer(1, &linear);
 	
 	neural_net->forward_prop();
+
+	Matrix *m = new Matrix(2, 1, inputs, 2);
 	
+	cout << "-------------------" << endl;
+	sigmoid(m)->print();
+		
 	return 0;
 }
 	
