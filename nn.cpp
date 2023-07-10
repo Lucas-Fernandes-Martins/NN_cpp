@@ -164,6 +164,10 @@ class Matrix{
 		cout << endl;
 	}
 
+	vector<float>* get_data(){
+		return this->data;
+	}
+
 
 	Matrix& operator+(Matrix& m){
 		
@@ -222,6 +226,23 @@ class Layer: public Matrix{
 
 };
 
+float l2_loss(Matrix& pred, Matrix& target){
+	
+	if(pred.get_rows() != target.get_rows()){
+		cout << "WRONG MATRIX DIMENSIONS!" << endl;
+		exit(1);
+	}
+
+	float loss = 0;
+
+	for(int i = 0; i < pred.get_data()->size(); i++){
+		loss += pow(pred.get_data()->at(i) - target.get_data()->at(i), 2);
+	}
+
+	return (float) loss/(pred.get_data()->size());
+
+}
+
 Matrix* sigmoid(Matrix * m){
 	
 	Matrix *res = new Matrix(m->get_rows(), m->get_colms());
@@ -244,10 +265,14 @@ Matrix * linear(Matrix *m){
 class NN{
 	
 	vector<Layer*> *layers;
+	
+	float (*loss)(Matrix&, Matrix&);
+	
+	Matrix* targets;
 
 	public:
 
-	NN(int size_input, float inputs[]){
+	NN(int size_input, float inputs[], int size_target, float targets[], float (*loss)(Matrix&, Matrix&)=l2_loss){
 		this->layers = new vector<Layer*>();
 
 		//Create initial layer - inputs
@@ -255,6 +280,9 @@ class NN{
 		Layer *input = new Layer(size_input, 1, inputs, size_input);
 
 		this->add_layer(input);
+
+		this->targets = new Matrix(size_target, 1, targets, size_target);
+		this->loss = loss;
 		
 	}
 
@@ -304,7 +332,13 @@ class NN{
 
 		result->print();
 		
+		cout << "------ Current loss : " << this->loss(*result, *targets) << "\n";
 	}
+
+	void back_prop(){
+	
+	}
+
 
 
 	void print(){
@@ -320,16 +354,6 @@ class NN{
 			(*itr)->print();
 		}
 	}
-
-	
-	
-	/*
-	for(auto itr: this->layers){
-		
-	}
-	*/
-
-
 
 };
 
@@ -410,7 +434,9 @@ int main(){
 
 	float inputs[] = {1.0, 2.0};
 	
-	NN *neural_net = new NN(2, inputs); 
+	float targets[] = {2.0};
+
+	NN *neural_net = new NN(2, inputs, 1, targets); 
 	
 	neural_net->add_layer(2, &sigmoid);
 	
