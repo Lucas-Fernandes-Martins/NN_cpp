@@ -142,18 +142,19 @@ class Matrix{
 
 
 	void print(){
-		cout << "M = " << endl;	
-		for(int i = 0; i < this->rows; i++){
+		
+		cout << "\n-----------------\n";
+		cout << "\nM = " << endl;
+		
+		for(int i = 0; i < this->data->size(); i++){
 			
+			if(i % this->colms == 0) cout << "\n";
 
-			for(int j = 0; j < this->colms; j++){
-				
-				if(j == 0) cout << " ";
+			cout << this->data->at(i) << " ";
 
-				cout << this->at(i, j) << " ";
-			}
-			cout << "\n";
 		}
+
+		cout << "\n";
 	}
 
 	void print_data(){
@@ -186,6 +187,39 @@ class Matrix{
 		return *res;
 
 	}
+
+	Matrix& operator-(Matrix& m){
+		
+		if(this->colms != m.colms || this->rows != m.rows){
+			cout << "WRONG DIMENSIONS FOR ADITTION!";
+			exit(1);
+		}
+
+		Matrix *res = new Matrix(this->rows, this->colms);
+		
+		for(int i = 0; i < this->data->size(); i++){
+			res->data->at(i) = this->data->at(i) - m.data->at(i);
+		}
+
+	
+		return *res;
+
+	}
+
+	Matrix& operator-(float v){
+		
+		Matrix *res = new Matrix(this->rows, this->colms);
+		
+		for(int i = 0; i < this->data->size(); i++){
+			res->data->at(i) = this->data->at(i) - v;
+		}
+
+	
+		return *res;
+
+	}
+
+
 
 };
 
@@ -265,14 +299,18 @@ Matrix * linear(Matrix *m){
 class NN{
 	
 	vector<Layer*> *layers;
+
+	vector<Matrix*> *activations;
 	
+	float lrate;
+
 	float (*loss)(Matrix&, Matrix&);
 	
 	Matrix* targets;
 
 	public:
 
-	NN(int size_input, float inputs[], int size_target, float targets[], float (*loss)(Matrix&, Matrix&)=l2_loss){
+	NN(int size_input, float inputs[], int size_target, float targets[], float (*loss)(Matrix&, Matrix&)=l2_loss, float lrate=3e-4){
 		this->layers = new vector<Layer*>();
 
 		//Create initial layer - inputs
@@ -283,6 +321,10 @@ class NN{
 
 		this->targets = new Matrix(size_target, 1, targets, size_target);
 		this->loss = loss;
+
+		this->lrate = lrate;
+
+		this->activations = new vector<Matrix*>();
 		
 	}
 
@@ -325,6 +367,8 @@ class NN{
 			
 			cout << "\n----------res:\n";
 			result =  (*activation)(&m);
+			
+			this->activations->push_back(result);
 
 			ant = result;
 
@@ -333,10 +377,41 @@ class NN{
 		result->print();
 		
 		cout << "------ Current loss : " << this->loss(*result, *targets) << "\n";
+		cout << "\n-------- Activations --------\n";
+
+		for(auto itr = this->activations->begin(); itr != this->activations->end(); itr++){
+			(*itr)->print();
+		}
+	}
+
+
+	float grad_cost(float pred, float target){
+		
+		return 2*(pred - target);
+
+	}
+
+	float grad(float activation, float weight){
+		
+		return weight*activation*(activation-1);
+
 	}
 
 	void back_prop(){
-	
+		
+		//Update weights in the last layer
+		
+		vector<float> * last_weights = this->layers->back()->get_data();
+		vector<float> * last_act = this->activations->back()->get_data();
+
+
+		for(int i = 0; i < last_weights->size(); i++){
+				
+			//float g = grad(activations->at(i), last_weights->at(i));
+			//*itr = *itr - this->lrate*grad_cost();
+
+		}
+
 	}
 
 
@@ -440,7 +515,7 @@ int main(){
 	
 	neural_net->add_layer(2, &sigmoid);
 	
-	neural_net->add_layer(2, &sigmoid);
+	//neural_net->add_layer(2, &sigmoid);
 	
 	neural_net->add_layer(1, &linear);
 	
