@@ -141,11 +141,14 @@ class Matrix{
 	}
 
 
-	void print(){
+	void print(bool verbose=false){
 		
 		cout << "\n-----------------\n";
-		cout << "\nM = " << endl;
 		
+		if(verbose) cout << "(" << this->rows << "x" << this->colms << ")\n";
+
+		cout << "\nM = ";
+			
 		for(int i = 0; i < this->data->size(); i++){
 			
 			if(i % this->colms == 0) cout << "\n";
@@ -188,6 +191,19 @@ class Matrix{
 
 	}
 
+	Matrix& operator+(float v){
+			
+			Matrix *res = new Matrix(this->rows, this->colms);
+			
+			for(int i = 0; i < this->data->size(); i++){
+				res->data->at(i) = this->data->at(i) + v;
+			}
+
+		
+			return *res;
+
+	}
+
 	Matrix& operator-(Matrix& m){
 		
 		if(this->colms != m.colms || this->rows != m.rows){
@@ -218,6 +234,20 @@ class Matrix{
 		return *res;
 
 	}
+
+
+	Matrix& operator*(float v){
+			
+			Matrix *res = new Matrix(this->rows, this->colms);
+			
+			for(int i = 0; i < this->data->size(); i++){
+				res->data->at(i) = this->data->at(i)*v;
+			}
+
+		
+			return *res;
+
+		}
 
 
 
@@ -280,18 +310,26 @@ float l2_loss(Matrix& pred, Matrix& target){
 Matrix* sigmoid(Matrix * m){
 	
 	Matrix *res = new Matrix(m->get_rows(), m->get_colms());
+	
 
+	for(int i = 0; i < res->get_data()->size(); i++){
+		float n_value = 1/(1 + exp(m->at(0, i)));	
+		res->get_data()->at(i) = n_value;
+
+	}
+	/*
 	for(int i = 0; i < res->get_rows(); i++){
 		float n_value = 1/(1 + exp(m->at(0, i)));
 		res->set(0, i, n_value);
 	}
-
+	*/
+	
 	return res;
 
 }
 
 Matrix * linear(Matrix *m){
-	
+			
 	return m;
 
 }
@@ -325,7 +363,7 @@ class NN{
 		this->lrate = lrate;
 
 		this->activations = new vector<Matrix*>();
-		
+			
 	}
 
 	void add_layer(Layer *layer){
@@ -364,10 +402,10 @@ class NN{
 			
 			Matrix* (*activation)(Matrix*) = this->layers->at(i)->get_activation();
 			Matrix m = *(this->layers->at(i)->mul(ant)) + *(this->layers->at(i)->get_bias());
-			
+					
 			cout << "\n----------res:\n";
 			result =  (*activation)(&m);
-			
+								
 			this->activations->push_back(result);
 
 			ant = result;
@@ -378,22 +416,26 @@ class NN{
 		
 		cout << "------ Current loss : " << this->loss(*result, *targets) << "\n";
 		cout << "\n-------- Activations --------\n";
-
+		
+	
+		
 		for(auto itr = this->activations->begin(); itr != this->activations->end(); itr++){
 			(*itr)->print();
 		}
+		
+		
 	}
 
 
-	float grad_cost(float pred, float target){
+	float grad_cost(Matrix* pred, Matrix* target, float previous_activation){
 		
-		return 2*(pred - target);
+		return 2*(pred - target)*previous_activation;
 
 	}
 
-	float grad(float activation, float weight){
+	float grad(float activation, float pactivation){
 		
-		return weight*activation*(activation-1);
+		return pactivation*activation*(activation-1);
 
 	}
 
@@ -401,16 +443,43 @@ class NN{
 		
 		//Update weights in the last layer
 		
-		vector<float> * last_weights = this->layers->back()->get_data();
-		vector<float> * last_act = this->activations->back()->get_data();
-
-
-		for(int i = 0; i < last_weights->size(); i++){
-				
-			//float g = grad(activations->at(i), last_weights->at(i));
-			//*itr = *itr - this->lrate*grad_cost();
+		for(int i = 0; i < this->activations->size(); i++){
+			
+			this->activations->at(i)->print(true);
 
 		}
+
+		return;
+
+		Matrix * last_weights = this->layers->back();
+		Matrix * last_act = this->activations->back();
+		
+				
+		for(int i = 0; i < last_act->get_colms(); i++){
+			
+			int current_row = i;
+								
+			for(int j = 0; j < last_weights->get_colms(); j++){
+				Matrix *previous_act = this->activations->at(-2);		
+				cout << "-------- here -----\n";
+				float previous_index_value = previous_act->at(i, 0);
+
+				last_weights->set(i,j,this->lrate*grad_cost(last_act, this->targets, previous_index_value));
+				
+
+
+			}
+				
+
+		}
+		
+		cout << "Updated weights : \n";
+						
+		this->layers->back()->print();
+
+
+		
+
 
 	}
 
@@ -520,6 +589,10 @@ int main(){
 	neural_net->add_layer(1, &linear);
 	
 	neural_net->forward_prop();
+
+	cout << "----- Back propagation" << endl;
+
+	neural_net->back_prop();
 	
 	return 0;
 }
