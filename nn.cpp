@@ -354,12 +354,6 @@ Matrix* sigmoid(Matrix * m){
 		res->get_data()->at(i) = n_value;
 
 	}
-	/*
-	for(int i = 0; i < res->get_rows(); i++){
-		float n_value = 1/(1 + exp(m->at(0, i)));
-		res->set(0, i, n_value);
-	}
-	*/
 	
 	return res;
 
@@ -383,7 +377,7 @@ class NN{
 
 	vector<Matrix*> *activations;
 
-	vector<Matrix*> *derivatives;
+	vector<Matrix> *derivatives;
 
 	float lrate;
 
@@ -411,7 +405,7 @@ class NN{
 
 		this->activations->push_back(input);
 
-		this->derivatives = new vector<Matrix*>();
+		this->derivatives = new vector<Matrix>();
 			
 }
 
@@ -476,15 +470,15 @@ class NN{
 	}
 
 
-	Matrix& cost_grad(Matrix* pred, Matrix* target, float previous_activation){
+	Matrix& cost_grad(Matrix* pred, Matrix* target){
 		Matrix temp = *pred - *target;
-		return (temp*previous_activation)*2;
+		return 2*temp;
 
 	}
 
 	float grad(float activation, float pactivation){
 		
-		return pactivation*activation*(activation-1);
+		return pactivation*activation*(1-activation);
 
 	}
 
@@ -514,17 +508,32 @@ class NN{
 		last_weights->print(true);
 		last_act->print(true);
 
+
+
 		
 		//Last layer			
+		int size = this->activations->size();
+		Matrix *previous_act = this->activations->at(size-2);		
+		cout << "-------- here -----\n";
+
+		Matrix derivative_cost = cost_grad(last_act, this->targets);
+		
+		this->derivatives->push_back(derivative_cost);
+
+
 		for(int j = 0; j < last_weights->get_rows(); j++){
-			int size = this->activations->size();
-			Matrix *previous_act = this->activations->at(size-2);		
+
+			Matrix *previous_act = this->activations->at(size-2);
 			cout << "-------- here -----\n";
 			float previous_index_value = previous_act->at(j, 0);
 
 			float current_value = last_weights->at(0, j);
 
-			last_weights->set(0,j, current_value - this->lrate*cost_grad(last_act, this->targets, previous_index_value).to_scalar());
+			float derivative_layer = grad(last_act->to_scalar(), previous_index_value);
+
+			float total_derivative = (derivative_cost*derivative_layer).to_scalar();
+
+			last_weights->set(0,j, current_value - this->lrate*total_derivative);
 		}
 
 		//Previous layer
